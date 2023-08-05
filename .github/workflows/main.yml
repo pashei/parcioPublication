@@ -1,4 +1,4 @@
-name: Run Python Program
+name: Run Python Program and Update index.html
 
 on:
   push:
@@ -22,3 +22,11 @@ jobs:
 
     - name: Run Python script
       run: python bibToHtml.py parcio.bib template.html index.html
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add index.html
+        git commit -m "Update index.html"
+        git push origin main
