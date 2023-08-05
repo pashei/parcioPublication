@@ -1,0 +1,24 @@
+name: Run Python Program
+
+on:
+  push:
+    paths:
+      - 'bibToHtml.py'
+      - 'parcio.bib'
+      - 'template.html'
+
+jobs:
+  run-python:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Run Python script
+      run: python bibToHtml.py parcio.bib template.html index.html
