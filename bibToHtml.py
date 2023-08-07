@@ -3,29 +3,14 @@ import sys
 from datetime import date
 import re
 
-
 def cleanup_title(s):
-    """Clean up and format article titles.
-
-    cleanup_title(str) -> str
-    """
-
     s = s.lower()
     s = s.capitalize()
-
     return s
-
 
 def cleanup_page(s):
-    """Clean up the article page string.
-
-    cleanup_pages(str) -> str
-    """
-
     s = s.replace('--', '-')
-
     return s
-
 
 def convert_umlaute_to_html(text):
     umlaute_mapping = {
@@ -70,30 +55,23 @@ else:
     elif len(sys.argv) == 3:
         print_to_stdout = 1
 
-# Open, read and close the BibTeX and template files
+# Open, read, edit and close the BibTeX and template files
 with open(bibfile, 'r') as file:
     text = file.read()
     text = text.replace(' and', ',')
     text = text.replace('{-}', '-')
     text = text.replace(r"{\'{\i}}", '&iacute;')
     text = text.replace('{\&}', '&amp')
-    #text = text.replace('{CHEOPS}', 'CHEOPS')
-    #text = text.replace('{ISC}', 'ISC')
-    #text = text.replace('{IEEE}', 'IEEE')
-    #text = text.replace('{IGSC}', 'IGSC')
-    #text = text.replace('{ICCS}', 'ICCS')
-    #text = text.replace('{CLUSTER}', 'CLUSTER')
-    #text = text.replace('{IOS}', 'IOS')
     converted_text1 = convert_umlaute_to_html(str(text))
     converted_text2 = remove_braces_around_short_text(str(converted_text1))
 
-with open(bibfile, 'w')  as file:
+with open('edit.bib', 'w')  as file:
     file.write(converted_text2)
 
 with open(templatefile, 'r') as f:
     template = f.read()
 
-with open(bibfile, 'r') as f:
+with open('edit.bib', 'r') as f:
     datalist = f.readlines()
 
 # Discard unwanted characteres and commented lines
@@ -118,11 +96,6 @@ for s in biblist:
     id, sep, s = s.partition(',')
     s = s.rpartition('}')[0]
     keylist = ['type = ' + type.lower(), 'id = ' + id]
-
-    # Uncomment for debugging
-    # print(keylist)
-    # print(s)
-
     number = 0
     flag = 0
     i = 0
@@ -175,25 +148,19 @@ dictlist = []
 for d in dictlist_bkp:
     dlower = {k: v for (k, v) in d.items()}
     dictlist.append(dlower)
-    # print(dictlist)
 
-# Keep only articles in the list
-# dictlist = [d for d in dictlist if d['type'] == 'article']
-# keep only articles that have author and title
 dictlist = [d for d in dictlist if 'title' in d]
 dictlist = [d for d in dictlist if d['title'] != '']
-# print(dictlist)
 
 # Get a list of the article years and the min and max values
 years = [int(d['year']) for d in dictlist if 'year' in d]
 years.sort()
-# print(years)
 older = years[0]
 newer = years[-1]
 
 # Set the fields to be exported to html (following this order)
 mandatory = ['author', 'title']
-optional = ['journal', 'eprint', 'volume', 'pages', 'booktitle', 'year', 'url', 'doi']
+optional = ['journal', 'eprint', 'volume', 'pages', 'booktitle', 'year', 'url', 'doi', 'editor']
 
 # Clean up data
 for i in range(len(dictlist)):
@@ -207,7 +174,9 @@ for y in reversed(range(older, newer + 1)):
         html += '<h3 id="y{0}">{0}</h3>\n\n\n<ul>\n'.format(y)
         for d in dictlist:
             if 'year' in d and int(d['year']) == y:
-                mandata = [d[key] if key in d else 'Unknown' for key in mandatory]  # Use 'Unknown' if author is missing
+                mandata = [d[key] if key in d else 'Unknown' for key in mandatory]# Use 'Unknown' if author is missing
+                if 'editor' in d:
+                    mandata[0] = d['editor'] # Use editor if author is missing and editor is available
                 html += '<li>{0}, <i>{1}</i>'.format(*mandata)
 
                 for t in optional:
